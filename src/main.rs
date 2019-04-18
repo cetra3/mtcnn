@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bbox = args.request_fetch(&graph.operation_by_name_required("box")?, 0);
     let prob = args.request_fetch(&graph.operation_by_name_required("prob")?, 0);
 
-    let mut session = Session::new(&SessionOptions::new(), &graph)?;
+    let session = Session::new(&SessionOptions::new(), &graph)?;
 
     session.run(&mut args)?;
 
@@ -86,33 +86,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let prob_res: Tensor<f32> = args.fetch(prob)?;
 
     //Let's store the results as a Vec<BBox>
-    let mut bboxes = Vec::new();
-
-    let mut i = 0;
-    let mut j = 0;
-
-    //While we have responses, iterate through
-    while i < bbox_res.len() {
-        //Add in the 4 floats from the `bbox_res` array.
-        //Notice the y1, x1, etc.. is ordered differently to our struct definition.
-        bboxes.push(BBox {
-            y1: bbox_res[i],
-            x1: bbox_res[i + 1],
-            y2: bbox_res[i + 2],
-            x2: bbox_res[i + 3],
-            prob: prob_res[j], // Add in the facial probability
-        });
-
-        //Step `i` ahead by 4.
-        i += 4;
-        //Step `i` ahead by 1.
-        j += 1;
-    }
+    let bboxes: Vec<_> = bbox_res
+        .chunks_exact(4) // Split into chunks of 4
+        .zip(prob_res.iter()) // Combine it with prob_res
+        .map(|(bbox, &prob)| BBox {
+            y1: bbox[0],
+            x1: bbox[1],
+            y2: bbox[2],
+            x2: bbox[3],
+            prob,
+        })
+        .collect();
 
     println!("BBox Length: {}, BBoxes:{:#?}", bboxes.len(), bboxes);
 
-    //We don't want to change the input image, but create a new one based on it.
-    let mut output_image = input_image.clone();
+    //We want to change input_image since it is not needed.
+    let mut output_image = input_image;
 
     //Iterate through all bounding boxes
     for bbox in bboxes {
