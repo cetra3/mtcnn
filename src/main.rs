@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bbox = args.request_fetch(&graph.operation_by_name_required("box")?, 0);
     let prob = args.request_fetch(&graph.operation_by_name_required("prob")?, 0);
 
-    let session = Session::new(&SessionOptions::new(), &graph)?;
+    let mut session = Session::new(&SessionOptions::new(), &graph)?;
 
     session.run(&mut args)?;
 
