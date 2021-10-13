@@ -29,9 +29,7 @@ pub struct BBox {
 }
 
 // The line colour never changes, so make it a `const`
-const LINE_COLOUR: Rgba<u8> = Rgba {
-    data: [0, 255, 0, 0],
-};
+const LINE_COLOUR: Rgba<u8> = Rgba([0, 255, 0, 0]);
 
 fn main() -> Result<(), Box<dyn Error>> {
     let opt = Opt::from_args();
@@ -76,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bbox = args.request_fetch(&graph.operation_by_name_required("box")?, 0);
     let prob = args.request_fetch(&graph.operation_by_name_required("prob")?, 0);
 
-    let mut session = Session::new(&SessionOptions::new(), &graph)?;
+    let session = Session::new(&SessionOptions::new(), &graph)?;
 
     session.run(&mut args)?;
 
@@ -101,7 +99,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("BBox Length: {}, BBoxes:{:#?}", bboxes.len(), bboxes);
 
     //We want to change input_image since it is not needed.
-    let mut output_image = input_image;
+    let mut output_image = input_image.to_rgba();
 
     //Iterate through all bounding boxes
     for bbox in bboxes {
